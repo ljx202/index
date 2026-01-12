@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>安全提示 - 请在浏览器中打开</title>
+    <style>
+        /* 极简样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .warning-icon {
+            font-size: 64px;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .message {
+            color: #555;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        
+        .url-box {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            position: relative;
+            word-break: break-all;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #2c3e50;
+            text-align: left;
+        }
+        
+        .copy-btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
+        }
+        
+        .copy-btn:active {
+            transform: translateY(0);
+        }
+        
+        .copy-btn.copied {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+        
+        .instructions {
+            background: #fff9e6;
+            border-left: 4px solid #f1c40f;
+            padding: 15px;
+            margin-top: 30px;
+            text-align: left;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .instructions h3 {
+            color: #d35400;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+            color: #555;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .footer {
+            margin-top: 25px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 480px) {
+            .container {
+                padding: 25px 20px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            .url-box {
+                font-size: 13px;
+                padding: 15px;
+            }
+            
+            .copy-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="warning-icon">⚠️</div>
+        
+        <h1>出于安全考虑，请在浏览器中打开</h1>
+        
+        <div class="message">
+            当前链接无法在当前环境安全访问<br>
+            请复制下方链接到浏览器中打开
+        </div>
+        
+        <div class="url-box" id="url-display">
+            <!-- URL 将通过 JavaScript 动态填充 -->
+        </div>
+        
+        <button class="copy-btn" id="copy-button">
+            <span>📋</span>
+            <span id="copy-text">复制链接</span>
+        </button>
+        
+        <div class="instructions">
+            <h3>操作步骤：</h3>
+            <ol>
+                <li>点击上方"复制链接"按钮</li>
+                <li>打开浏览器（Chrome/Safari/Edge/Firefox等）</li>
+                <li>在地址栏粘贴链接并访问</li>
+                <li>如果无法复制，请长按上方链接手动选择复制</li>
+            </ol>
+        </div>
+        
+        <div class="footer">
+            <p>© <span id="current-year"></span> 安全访问提示</p>
+            <p style="font-size: 12px; margin-top: 5px;">此页面用于保护您的访问安全</p>
+        </div>
+    </div>
+
+    <script>
+        // 自动获取当前年份
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        
+        // 从URL参数获取原始链接
+        function getOriginalUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const original = params.get('original');
+            const from = params.get('from');
+            
+            // 如果URL参数中有original参数，使用它
+            if (original) {
+                try {
+                    return decodeURIComponent(original);
+                } catch (e) {
+                    return original;
+                }
+            }
+            
+            // 如果是从微信重定向过来的，显示一个通用提示
+            if (from === 'wechat') {
+                return '原链接已在微信中被拦截，请在浏览器中访问';
+            }
+            
+            // 默认返回当前页面URL（去除参数）
+            return window.location.origin;
+        }
+        
+        // 显示URL
+        const originalUrl = getOriginalUrl();
+        document.getElementById('url-display').textContent = originalUrl;
+        
+        // 复制功能
+        const copyButton = document.getElementById('copy-button');
+        const copyText = document.getElementById('copy-text');
+        
+        copyButton.addEventListener('click', async () => {
+            try {
+                // 使用现代 Clipboard API
+                await navigator.clipboard.writeText(originalUrl);
+                
+                // 更新按钮状态
+                copyText.textContent = '已复制！';
+                copyButton.classList.add('copied');
+                
+                // 3秒后恢复按钮状态
+                setTimeout(() => {
+                    copyText.textContent = '复制链接';
+                    copyButton.classList.remove('copied');
+                }, 3000);
+                
+            } catch (err) {
+                // 降级方案：使用传统document.execCommand
+                const textArea = document.createElement('textarea');
+                textArea.value = originalUrl;
+                textArea.style.position = 'fixed';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.select();
+                
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        copyText.textContent = '已复制！';
+                        copyButton.classList.add('copied');
+                        setTimeout(() => {
+                            copyText.textContent = '复制链接';
+                            copyButton.classList.remove('copied');
+                        }, 3000);
+                    } else {
+                        copyText.textContent = '复制失败';
+                        setTimeout(() => {
+                            copyText.textContent = '复制链接';
+                        }, 2000);
+                    }
+                } catch (err) {
+                    copyText.textContent = '复制失败';
+                    setTimeout(() => {
+                        copyText.textContent = '复制链接';
+                    }, 2000);
+                } finally {
+                    document.body.removeChild(textArea);
+                }
+            }
+        });
+        
+        // 自动尝试复制（可选功能）
+        function tryAutoCopy() {
+            // 检查是否是从特定来源重定向的
+            const params = new URLSearchParams(window.location.search);
+            const autoCopy = params.get('autocopy');
+            
+            if (autoCopy === 'true' || autoCopy === '1') {
+                // 延迟2秒后自动复制
+                setTimeout(() => {
+                    copyButton.click();
+                }, 2000);
+            }
+        }
+        
+        // 页面加载完成后尝试自动复制
+        window.addEventListener('load', tryAutoCopy);
+        
+        // 添加键盘快捷键支持
+        document.addEventListener('keydown', (event) => {
+            // Ctrl/Cmd + C 复制
+            if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
+                copyButton.click();
+            }
+            
+            // ESC 键清除提示
+            if (event.key === 'Escape') {
+                copyButton.classList.remove('copied');
+                copyText.textContent = '复制链接';
+            }
+        });
+        
+        // 移动端触摸优化
+        copyButton.addEventListener('touchstart', () => {
+            copyButton.style.transform = 'scale(0.98)';
+        }, { passive: true });
+        
+        copyButton.addEventListener('touchend', () => {
+            copyButton.style.transform = '';
+        }, { passive: true });
+    </script>
+</body>
+</html>
